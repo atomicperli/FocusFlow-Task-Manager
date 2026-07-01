@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
@@ -13,11 +14,18 @@ app = FastAPI(
 )
 
 # CORS setup
-# In production, specify list of origins instead of "*"
+cors_origins_str = os.getenv("CORS_ORIGINS", "*")
+origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
+
+# Starlette raises RuntimeError if allow_origins is ["*"] and allow_credentials is True
+allow_credentials = True
+if "*" in origins:
+    allow_credentials = False
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
